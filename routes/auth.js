@@ -56,6 +56,31 @@ router.post("/register", upload.single("profileImage"), async (req, res) => {
   }
 });
 
+router.post("/signin",async (req, res) => {
+  try {
+    const user = await User.findOne({ email: req.body.email });
+    if (user) {
+      const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
+      res.status(200).json({ token, user })
+
+    } else {
+      const newUser = new User({
+        firstName:req.body.firstName,
+        email:req.body.email,
+        profileImagePath:req.body.profileImage,
+        fromGoogle: true,
+      });
+      const savedUser = await newUser.save();
+      console.log(savedUser)
+      const token = jwt.sign({ id: savedUser._id }, process.env.JWT_SECRET);
+     res.status(200).json({ token, user:savedUser })
+
+    }
+  } catch (err) {
+    console.log(err)
+  }
+});
+
 
 router.post('/login',async(req,res)=>{
    const {email,password}=req.body
